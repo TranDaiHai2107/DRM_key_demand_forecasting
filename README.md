@@ -142,11 +142,5 @@ drm-key-demand-forecasting/
 
 ---
 
-## Author
-
-**[Your Name]**  
-Data Analyst · [LinkedIn](https://linkedin.com) · [Email](mailto:you@email.com)
-
----
 
 *This project addresses a real-world Operational Business Intelligence problem: replacing intuition-based procurement with a data-driven forecasting system for DRM key demand planning.*
