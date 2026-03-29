@@ -76,7 +76,7 @@ Total DRM Keys (per day) =
     [Source B] Log_Fimplus_MovieID + Log_BHD_MovieID
                → On-demand movie views
                → JOIN MV_PropertiesShowVN WHERE isDRM = 1
-
+```
 
 ## Solution Architecture
 
