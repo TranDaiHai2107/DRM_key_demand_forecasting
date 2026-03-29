@@ -51,7 +51,7 @@ DRM keys are triggered by two distinct content types:
 | `Log_Get_DRM_List` | Key issuance log for **Premium channel packages** (K+, Đặc Sắc) | `CustomerID`, `Date`, `Mac` |
 | `Log_Fimplus_MovieID` | Full viewing log for **Fim+ on-demand movies** (all titles, DRM and non-DRM) | `CustomerID`, `MovieId`, `date`, `folder`, `Ftype` |
 | `Log_BHD_MovieID` | Full viewing log for **BHD on-demand movies** (all titles, DRM and non-DRM) | `CustomerID`, `MovieID`, `DATE`, `folder`, `FTYPE` |
-| `MV_PropertiesShowVN` | Content metadata — used to filter DRM-protected movies (`isDRM = 1`) | `id`, `isDRM`, `toptitle`, `Duration` |
+| `MV_PropertiesShowVN` | Content metadata — used to filter DRM-protected movies (`isDRM = 1`) (Changed name of column `id` to `MoviedId`) | `id`, `isDRM`, `toptitle`, `Duration` |
 | `Customers` | Device registry per customer | `customerid`, `mac`, `created_date` |
 | `CustomerService` | Customer service transaction history | `CustomerID`, `ServiceID`, `Amount`, `Date` |
 
