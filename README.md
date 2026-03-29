@@ -16,10 +16,10 @@ DRM keys are triggered by two distinct content types:
 | **On-demand movies** | Fim+, BHD | Only movies flagged as `isDRM = 1` |
 
 ```
-1 device (MAC address) × 1 day with any DRM-protected content access = 1 DRM Key issued
+1 User × 1 day with any DRM-protected content access = 1 DRM Key issued
 ```
 
-> Note: If a customer watches 10 DRM-protected movies **and** streams a K+ channel on the same device in a single day, the system still issues only **1 DRM Key** for that device. The core metric is **COUNT DISTINCT** (CustomerID, MAC) per day — aggregated across all content sources.
+> Note: If a customer watches 10 DRM-protected movies **and** streams a K+ channel on the different devices in a single day, the system still issues only **1 DRM Key** for that user. The core metric is **COUNT DISTINCT** (CustomerID) per day — aggregated across all content sources.
 
 ---
 
