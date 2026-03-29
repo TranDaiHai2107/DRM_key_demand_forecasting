@@ -6,13 +6,20 @@
 
 ## Business Context
 
-On an OTT platform, when a user accesses DRM-protected content — including on-demand movies from BHD and Fim+, or premium live channels such as K+ and Đặc Sắc — the system issues a **DRM (Digital Rights Management) Key** to their device for that day. DRM keys are a purchased resource: the business must acquire them in advance from content rights holders under a fixed quota.
+On an OTT platform, when a user accesses DRM-protected content, the system issues a **DRM (Digital Rights Management) Key** to their device for that day. DRM keys are a purchased resource: the business must acquire them in advance from content rights holders under a fixed quota.
+
+DRM keys are triggered by two distinct content types:
+
+| Content Type | Source | Condition |
+|---|---|---|
+| **Premium live channels** | K+, Đặc Sắc | Any access to a channel under a Premium package |
+| **On-demand movies** | Fim+, BHD | Only movies flagged as `isDRM = 1` |
 
 ```
-1 device (MAC address) × 1 day watching DRM-protected content = 1 DRM Key issued
+1 device (MAC address) × 1 day with any DRM-protected content access = 1 DRM Key issued
 ```
 
-> Note: If a customer watches 10 DRM-protected titles on the same device in a single day, the system still issues only **1 DRM Key**. The core metric is therefore **COUNT DISTINCT** (device per day).
+> Note: If a customer watches 10 DRM-protected movies **and** streams a K+ channel on the same device in a single day, the system still issues only **1 DRM Key** for that device. The core metric is **COUNT DISTINCT** (CustomerID, MAC) per day — aggregated across all content sources.
 
 ---
 
@@ -41,14 +48,37 @@ On an OTT platform, when a user accesses DRM-protected content — including on-
 
 | Table | Description | Key Columns |
 |---|---|---|
-| `Log_Get_DRM_List` | System log of DRM key issuances | `CustomerID`, `Date`, `Mac` |
-| `Log_Fimplus_MovieID` | Viewing log from Fim+ content source | `CustomerID`, `MovieId`, `date`, `folder`, `Ftype` |
-| `Log_BHD_MovieID` | Viewing log from BHD content source | `CustomerID`, `MovieID`, `DATE`, `folder`, `FTYPE` |
-| `MV_PropertiesShowVN` | Content metadata | `id`, `isDRM`, `toptitle`, `Duration` |
+| `Log_Get_DRM_List` | Key issuance log for **Premium channel packages** (K+, Đặc Sắc) | `CustomerID`, `Date`, `Mac` |
+| `Log_Fimplus_MovieID` | Full viewing log for **Fim+ on-demand movies** (all titles, DRM and non-DRM) | `CustomerID`, `MovieId`, `date`, `folder`, `Ftype` |
+| `Log_BHD_MovieID` | Full viewing log for **BHD on-demand movies** (all titles, DRM and non-DRM) | `CustomerID`, `MovieID`, `DATE`, `folder`, `FTYPE` |
+| `MV_PropertiesShowVN` | Content metadata — used to filter DRM-protected movies (`isDRM = 1`) | `id`, `isDRM`, `toptitle`, `Duration` |
 | `Customers` | Device registry per customer | `customerid`, `mac`, `created_date` |
 | `CustomerService` | Customer service transaction history | `CustomerID`, `ServiceID`, `Amount`, `Date` |
 
 **Scale:** 500K – 5M records · **Source:** Azure SQL via DataGrip
+
+---
+
+## Key Business Logic
+
+Total daily DRM keys must be computed by combining **two independent sources**, then deduplicating at the device level:
+
+```
+Total DRM Keys (per day) =
+    COUNT DISTINCT (CustomerID, MAC) from:
+
+    [Source A] Log_Get_DRM_List
+               → Premium channel access (K+, Đặc Sắc)
+               → No additional filter needed
+
+    UNION ALL
+
+    [Source B] Log_Fimplus_MovieID + Log_BHD_MovieID
+               → On-demand movie views
+               → JOIN MV_PropertiesShowVN WHERE isDRM = 1
+```
+
+A customer who watches a BHD movie **and** streams K+ on the same device in one day counts as **1 key**, not 2.
 
 ---
 
@@ -59,22 +89,23 @@ Raw Data (Azure SQL)
         │
         ▼
 [1] SQL — Extraction & Business Logic
-        │   · Compute daily DRM key count (COUNT DISTINCT MAC per day)
-        │   · Segment by content source (Fim+ vs BHD) and day of week
-        │   · Build reusable CTEs / Views as the analytical foundation
+        │   · Unify all 3 log sources into a single base view
+        │   · Apply isDRM = 1 filter on movie logs (Fim+ and BHD)
+        │   · Compute daily key count via COUNT DISTINCT (CustomerID, MAC)
+        │   · Segment by content type (channel vs movie), source, and day of week
         │
         ▼
 [2] Power BI — Operational Dashboard
         │   · KPI cards: keys today, this week, vs prior period
         │   · Trend line with 7-day and 30-day moving averages
         │   · Heatmap: consumption intensity by weekday × month
-        │   · Drill-through by content source and service package
+        │   · Split view: channel-driven keys vs movie-driven keys over time
         │
         ▼
 [3] Python — Forecasting Pipeline
             · EDA & seasonality decomposition
-            · Time series forecasting (Prophet / SARIMA)
-            · Model evaluation: MAPE, confidence intervals
+            · Time series forecasting (Prophet / LightGBM)
+            · Model evaluation: MAPE,RMSE, confidence intervals
             · Output: recommended purchase quantity + sensitivity analysis
 ```
 
@@ -86,12 +117,12 @@ Raw Data (Azure SQL)
 drm-key-demand-forecasting/
 │
 ├── sql/
-│   ├── 01_view_drm_base.sql            # Base view consolidating DRM log sources
-│   ├── 02_daily_key_count.sql          # Daily key issuance count
-│   ├── 03_weekly_trend.sql             # Week-over-week trend analysis
+│   ├── 01_view_drm_base.sql            # Base view: union all 3 sources, filter isDRM = 1
+│   ├── 02_daily_key_count.sql          # Daily DRM key count (COUNT DISTINCT)
+│   ├── 03_weekly_trend.sql             # Week-over-week trend + moving averages
 │   ├── 04_weekday_pattern.sql          # Consumption pattern by day of week
-│   ├── 05_monthly_summary.sql          # Monthly aggregation for planning
-│   └── 06_source_breakdown.sql         # Fim+ vs BHD contribution breakdown
+│   ├── 05_monthly_summary.sql          # Monthly aggregation for procurement planning
+│   └── 06_source_breakdown.sql         # Channel (K+/Đặc Sắc) vs movie (Fim+/BHD) split
 │
 ├── powerbi/
 │   └── DRM_Key_Monitor.pbix            # Operational dashboard file
@@ -106,7 +137,7 @@ drm-key-demand-forecasting/
 │   └── screenshots/                    # Dashboard and chart exports
 │
 ├── Dataset/
-│   
+│
 └── README.md
 ```
 
@@ -115,9 +146,9 @@ drm-key-demand-forecasting/
 ## Key Results
 
 ### SQL
-- Implemented precise DRM key counting logic aligned with business rules (COUNT DISTINCT MAC per day)
+- Implemented DRM key counting logic that correctly unifies **3 log sources** and deduplicates at the device level
 - Identified clear **weekly seasonality** — weekend consumption significantly exceeds weekdays
-- Quantified the relative contribution of Fim+ and BHD across different time periods
+- Quantified the split between **channel-driven keys** (K+, Đặc Sắc) and **movie-driven keys** (Fim+, BHD) to understand demand composition
 
 ### Power BI Dashboard
 - Operational dashboard enabling the business team to monitor daily key issuance in near real-time
