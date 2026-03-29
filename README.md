@@ -76,11 +76,7 @@ Total DRM Keys (per day) =
     [Source B] Log_Fimplus_MovieID + Log_BHD_MovieID
                → On-demand movie views
                → JOIN MV_PropertiesShowVN WHERE isDRM = 1
-```
 
-A customer who watches a BHD movie **and** streams K+ on the same device in one day counts as **1 key**, not 2.
-
----
 
 ## Solution Architecture
 
