@@ -105,7 +105,7 @@ drm-key-demand-forecasting/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/drm-key-demand-forecasting.git
+git clone https://github.com/TranDaiHai2107/drm-key-demand-forecasting.git
 cd drm-key-demand-forecasting
 
 # 2. Create virtual environment (recommended)
