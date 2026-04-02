@@ -130,8 +130,6 @@ drm-key-demand-forecasting/
 │   ├── 03_forecasting_model.ipynb      # Forecasting model training and evaluation
 │   └── 04_recommendation_output.ipynb  # Purchase recommendation with buffer scenarios
 │
-├── assets/
-│   └── screenshots/                    # Dashboard and chart exports
 │
 ├── Dataset/
 │
