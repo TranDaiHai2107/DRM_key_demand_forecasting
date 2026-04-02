@@ -121,7 +121,8 @@ drm-key-demand-forecasting/
 │   └── 06_source_breakdown.sql         # Channel (K+/Đặc Sắc) vs movie (Fim+/BHD) split
 │
 ├── powerbi/
-│   └── DRM_Key_Monitor.pbix            # Operational dashboard file
+│   ├── DRM_Key_Monitor.pbix            # Operational dashboard file
+│   └── DRM_Key_Monitor.png            # capture screen
 │
 ├── python/
 │   ├── 01_data_preparation.ipynb       # Data loading, cleaning, feature engineering
@@ -150,6 +151,7 @@ drm-key-demand-forecasting/
 - Operational dashboard enabling the business team to monitor daily key issuance in near real-time
 - **Utilization Rate** indicator comparing keys consumed vs. purchased quota — the primary signal for procurement decisions
 - Heatmap visualization of weekday × monthly consumption patterns to support forward planning
+  ![powerbi](powerbi/KEY_DRM_monitor.png)
 
 ### Python Forecasting
 - Time series forecast of daily DRM key demand achieving **MAPE < X%** on holdout test set
