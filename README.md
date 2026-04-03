@@ -29,18 +29,6 @@ When a user accesses DRM-protected content, the system issues a **DRM Key** to t
 3. **Forecast demand** — Predict next 30 days of key consumption
 4. **Recommend action** — Monthly purchase recommendation with buffer margin
 
-## Dataset
-
-| Table | Description |
-|---|---|
-| `Log_Get_DRM_List` | Key issuance log for Premium channels (K+, Đặc Sắc) |
-| `Log_Fimplus_MovieID` | Viewing log for Fim+ on-demand movies |
-| `Log_BHD_MovieID` | Viewing log for BHD on-demand movies |
-| `MV_PropertiesShowVN` | Content metadata — filter DRM movies (`isDRM = 1`) |
-| `Customers` | Device registry per customer |
-| `CustomerService` | Service transaction history |
-
-**Scale:** 500K – 5M records · **Source:** Azure SQL via DataGrip
 
 ## Key Business Logic
 
@@ -93,8 +81,6 @@ drm-key-demand-forecasting/
 │   ├── 01_data_preparation.ipynb
 │   ├── 02_eda_visualization.ipynb
 │   └── 03_forecasting_model.ipynb
-│
-├── Dataset/
 ├── requirements.txt
 └── README.md
 ```
